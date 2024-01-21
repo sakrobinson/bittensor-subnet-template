@@ -19,6 +19,7 @@
 
 import typing
 import bittensor as bt
+import numpy as np
 
 # TODO(developer): Rewrite with your protocol definition.
 
@@ -42,35 +43,36 @@ import bittensor as bt
 
 class Dummy(bt.Synapse):
     """
-    A simple dummy protocol representation which uses bt.Synapse as its base.
-    This protocol helps in handling dummy request and response communication between
-    the miner and the validator.
+    A modified dummy protocol representation which uses bt.Synapse as its base.
+    This protocol helps in handling request and response communication between
+    the miner and the validator for a cellular automata simulation.
+
+    For CA Dummy input should at least be the ruleset and the number of steps
 
     Attributes:
-    - dummy_input: An integer value representing the input request sent by the validator.
-    - dummy_output: An optional integer value which, when filled, represents the response from the miner.
+    - ruleset: An integer value representing the ruleset for the cellular automata simulation.
+    - steps: An integer value representing the number of steps for the cellular automata simulation.
+    - simulation_output: An optional 2D list of integers which, when filled, represents the result of the cellular automata simulation.
     """
 
-    # Required request input, filled by sending dendrite caller.
-    dummy_input: int
+    # Required request inputs, filled by sending dendrite caller.
+    ruleset: int
+    steps: int
 
-    # Optional request output, filled by recieving axon.
-    dummy_output: typing.Optional[int] = None
+    # Optional request output, filled by receiving axon.
+    simulation_output: typing.Optional[bytes] = None
 
-    def deserialize(self) -> int:
+    def deserialize(self) -> np.ndarray:
         """
-        Deserialize the dummy output. This method retrieves the response from
-        the miner in the form of dummy_output, deserializes it and returns it
-        as the output of the dendrite.query() call.
+        Deserialize the simulation output. This method retrieves the result of
+        the CA simulation from the miner in the form of simulation_output,
+        deserializes it and returns it as the output of the dendrite.query() call.
+        This should be more efficient for numerical ops than a list
 
         Returns:
-        - int: The deserialized response, which in this case is the value of dummy_output.
-
-        Example:
-        Assuming a Dummy instance has a dummy_output value of 5:
-        >>> dummy_instance = Dummy(dummy_input=4)
-        >>> dummy_instance.dummy_output = 5
-        >>> dummy_instance.deserialize()
-        5
+        - np.ndarray: The deserialized response, which in this case is the value of simulation_output.
         """
-        return self.dummy_output
+        if self.simulation_output is not None:
+            return np.frombuffer(self.simulation_output, dtype=np.int).reshape(-1, 100)
+        else:
+            return None

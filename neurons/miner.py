@@ -20,6 +20,7 @@
 import time
 import typing
 import bittensor as bt
+import cellpylib as cpl
 
 # Bittensor Miner Template:
 import template
@@ -42,6 +43,15 @@ class Miner(BaseMinerNeuron):
 
         # TODO(developer): Anything specific to your use case you can do here
 
+
+    def run_ca_simulation(self, ruleset, steps):
+        # Initialize the cellular automata
+        ca = cpl.init_simple2d(100, 100) # this should be replaced with input data probably
+
+        # Apply the ruleset and run the simulation
+        ca = cpl.evolve2d(ca, timesteps=steps, apply_rule=lambda n, c, t: cpl.totalistic_rule(n, k=ruleset))
+
+        return ca
     async def forward(
         self, synapse: template.protocol.Dummy
     ) -> template.protocol.Dummy:
@@ -58,8 +68,15 @@ class Miner(BaseMinerNeuron):
         The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
         the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
-        # TODO(developer): Replace with actual implementation logic.
-        synapse.dummy_output = synapse.dummy_input * 2
+        # Run the cellular automata simulation
+        ca = self.run_ca_simulation(self.ruleset, self.steps)
+
+        # Serialize the NumPy array to a byte stream
+        ca_bytes = ca.astype(np.int).tobytes()
+
+        # Set the output of the synapse to the result of the simulation. was dummy_output
+        synapse.simulation_output = ca_bytes
+    
         return synapse
 
     async def blacklist(
