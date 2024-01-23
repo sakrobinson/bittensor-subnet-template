@@ -21,6 +21,7 @@ import time
 import typing
 import bittensor as bt
 import cellpylib as cpl
+import numpy as np
 
 # Bittensor Miner Template:
 import template
@@ -28,6 +29,8 @@ import template
 # import base miner class which takes care of most of the boilerplate
 from template.base.miner import BaseMinerNeuron
 
+# import the CA rules module
+from utils.ca_rules import *
 
 class Miner(BaseMinerNeuron):
     """
@@ -42,16 +45,8 @@ class Miner(BaseMinerNeuron):
         super(Miner, self).__init__(config=config)
 
         # TODO(developer): Anything specific to your use case you can do here
+    
 
-
-    def run_ca_simulation(self, ruleset, steps):
-        # Initialize the cellular automata
-        ca = cpl.init_simple2d(100, 100) # this should be replaced with input data probably
-
-        # Apply the ruleset and run the simulation
-        ca = cpl.evolve2d(ca, timesteps=steps, apply_rule=lambda n, c, t: cpl.totalistic_rule(n, k=ruleset))
-
-        return ca
     async def forward(
         self, synapse: template.protocol.Dummy
     ) -> template.protocol.Dummy:
@@ -69,7 +64,7 @@ class Miner(BaseMinerNeuron):
         the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
         # Run the cellular automata simulation
-        ca = self.run_ca_simulation(self.ruleset, self.steps)
+        ca = self.run_ca_simulation(self.initial_state, self.steps, self.rule_func, self.neighborhood_func)
 
         # Serialize the NumPy array to a byte stream
         ca_bytes = ca.astype(np.int).tobytes()

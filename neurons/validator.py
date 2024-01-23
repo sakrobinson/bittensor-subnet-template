@@ -20,7 +20,8 @@
 # Step 1. Import the necessary libraries and modules
 import time
 import cellpylib as cpl
-
+import numpy as np
+import random
 # Bittensor
 import bittensor as bt
 
@@ -31,6 +32,8 @@ from template.validator import forward
 # import base validator class which takes care of most of the boilerplate
 from template.base.validator import BaseValidatorNeuron
 
+# import the CA rules module
+from utils.ca_rules import *
 
 class Validator(BaseValidatorNeuron):
     """
@@ -58,16 +61,36 @@ class Validator(BaseValidatorNeuron):
         - Getting the responses
         - Rewarding the miners
         - Updating the scores
-        """
-        # Generate the query
-        query = self.generate_query() # TODO - SAR create a function that (randomly?) generates the params (ruleset, steps) for the current epoch
-        
-        # Run the cellular automata simulation for the validator generated params
-        ca = self.run_ca_simulation()
+        """()
 
-    # Compare the simulation results with the responses from the miners
-    # ...
+        def generate_simulation_params(self):
+            # Generate a random initial state as a 2D numpy array
+            initial_state = np.random.randint(2, size=(10, 10))
+
+            # Choose a random number of steps
+            steps = random.randint(50, 100)
+
+            # Choose a random rule function. There should be a better way than adding new strings each time!
+            rule_funcs = [conway_rule, highlife_rule, day_and_night_rule, rule_30, rule_110, fredkin_rule, brians_brain_rule, seeds_rule]
+            rule_func = random.choice(rule_funcs)
+
+            # Choose a random neighborhood function. There should be a better way than adding new strings each time!
+            neighborhood_funcs = [moore_neighborhood, von_neumann_neighborhood]
+            neighborhood_func = random.choice(neighborhood_funcs)
+
+            return initial_state, steps, rule_func, neighborhood_func 
+            
+
+        # Generate the parameters for the simulation
+        initial_state, steps, rule_func, neighborhood_func = self.generate_simulation_params()
+
+        # Run the cellular automata simulation with the generated parameters
+        ca = self.run_ca_simulation(initial_state, steps, rule_func, neighborhood_func))
+
+        # Compare the simulation results with the responses from the miners
+        # ... NEED TO IMPLEMENT THIS ...
         # TODO(developer): Rewrite this function based on your protocol definition.
+        
         return await forward(self)
 
 
@@ -75,19 +98,10 @@ class Validator(BaseValidatorNeuron):
         # method to set the ruleset and the number of steps dynamically. Can be called whenever you need to update the current ruleset and steps
         # Can be called from anywhere you have access to the validator object. Method is async so should be call with 'await' from asynchronous context. 
         # If we need to call this method from a synchronous context (SAR is not sure!), we can just remove the 'async' keyword and call it normally.
-        async def set_ruleset_and_steps(self, ruleset, steps):
+        async def set_ruleset_and_steps(self, initial_state, steps, rule_func, neighborhood_func):
             self.ruleset = ruleset
             self.steps = steps
 
-        def run_ca_simulation(self):
-            """
-            Runs a simulation of the cellular automata for the current epoch.
-            """
-            # Run the CA simulation
-            self.ca = cpl.init_simple2d(self.ruleset, self.steps)
-            ca = cpl.evolve2d(ca, timesteps=self.steps, apply_rule=lambda n, c, t: cpl.totalistic_rule(n, k=self.ruleset))
-            
-            return ca
 
 
 

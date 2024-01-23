@@ -50,14 +50,18 @@ class Dummy(bt.Synapse):
     For CA Dummy input should at least be the ruleset and the number of steps
 
     Attributes:
-    - ruleset: An integer value representing the ruleset for the cellular automata simulation.
+    - initial_state: A 2D numpy array representing the initial state of the cellular automata simulation.
     - steps: An integer value representing the number of steps for the cellular automata simulation.
+    - rule_func: A function representing the rule function for the cellular automata simulation.
+    - neighborhood_func: A function representing the neighborhood function for the cellular automata simulation.
     - simulation_output: An optional 2D list of integers which, when filled, represents the result of the cellular automata simulation.
     """
 
     # Required request inputs, filled by sending dendrite caller.
-    ruleset: int
+    initial_state: np.ndarray
     steps: int
+    rule_func: typing.Callable
+    neighborhood_func: typing.Callable
 
     # Optional request output, filled by receiving axon.
     simulation_output: typing.Optional[bytes] = None
